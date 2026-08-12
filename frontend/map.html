@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nearby Stations</title>
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin="">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #eef7f4;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 8%;
+            background: #073b4c;
+            color: white;
+        }
+
+        header a {
+            margin-left: 18px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .container {
+            width: min(1200px, 92%);
+            margin: 30px auto;
+        }
+
+        h1 {
+            color: #073b4c;
+            margin-bottom: 8px;
+        }
+
+        .description {
+            color: #555;
+            margin-bottom: 18px;
+        }
+
+        #map {
+            height: 460px;
+            border-radius: 14px;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.18);
+        }
+
+        .location-btn {
+            margin: 18px 0;
+            padding: 11px 16px;
+            border: none;
+            border-radius: 7px;
+            background: #167b9b;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .station-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            margin-top: 20px;
+        }
+
+        .station-card {
+            padding: 22px;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+        }
+
+        .station-card h3 {
+            color: #073b4c;
+            margin-bottom: 12px;
+        }
+
+        .station-card p {
+            margin: 8px 0;
+            color: #555;
+        }
+
+        .available {
+            color: #07815f !important;
+            font-weight: bold;
+        }
+
+        .station-card button {
+            margin-top: 12px;
+            margin-right: 7px;
+            padding: 10px 13px;
+            border: none;
+            border-radius: 7px;
+            background: #0b8f6a;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .station-card .direction-btn {
+            background: #167b9b;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h2>⚡ Smart EV Charging</h2>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="booking-history.html">Booking History</a>
+        <a href="login.html">Logout</a>
+    </nav>
+</header>
+
+<main class="container">
+    <h1>Nearby Charging Stations</h1>
+
+    <p class="description">
+        Find available EV charging stations near your location.
+    </p>
+
+    <button class="location-btn" onclick="showMyLocation()">
+        Use My Current Location
+    </button>
+
+    <div id="map"></div>
+
+    <section class="station-list" id="stationList"></section>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin="">
+</script>
+
+<script>
+    let userLatitude = 17.3850;
+    let userLongitude = 78.4867;
+    let userMarker;
+    let stationMarkers = [];
+
+    const stations = [
+        {
+            name: "Hyderabad EV Hub",
+            location: "Hitech City, Hyderabad",
+            latitude: 17.4435,
+            longitude: 78.3772,
+            availableChargers: 4,
+            price: 12
+        },
+        {
+            name: "Gachibowli Charge Point",
+            location: "Gachibowli, Hyderabad",
+            latitude: 17.4401,
+            longitude: 78.3489,
+            availableChargers: 2,
+            price: 14
+        },
+        {
+            name: "Madhapur Fast Charge",
+            location: "Madhapur, Hyderabad",
+            latitude: 17.4484,
+            longitude: 78.3915,
+            availableChargers: 1,
+            price: 15
+        }
+    ];
+
+    const map = L.map("map").setView([userLatitude, userLongitude], 12);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(map);
+
+    function distanceInKm(latitude1, longitude1, latitude2, longitude2) {
+        const earthRadius = 6371;
+        const latitudeDifference = (latitude2 - latitude1) * Math.PI / 180;
+        const longitudeDifference = (longitude2 - longitude1) * Math.PI / 180;
+
+        const value =
+            Math.sin(latitudeDifference / 2) * Math.sin(latitudeDifference / 2) +
+            Math.cos(latitude1 * Math.PI / 180) *
+            Math.cos(latitude2 * Math.PI / 180) *
+            Math.sin(longitudeDifference / 2) *
+            Math.sin(longitudeDifference / 2);
+
+        return earthRadius * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+    }
+
+    function showStations() {
+        const stationList = document.getElementById("stationList");
+        stationList.innerHTML = "";
+
+        stationMarkers.forEach(function (marker) {
+            map.removeLayer(marker);
+        });
+
+        stationMarkers = [];
+
+        stations.forEach(function (station) {
+            const distance = distanceInKm(
+                userLatitude,
+                userLongitude,
+                station.latitude,
+                station.longitude
+            ).toFixed(1);
+
+            const marker = L.marker([station.latitude, station.longitude])
+                .addTo(map)
+                .bindPopup(
+                    "<b>" + station.name + "</b><br>" +
+                    station.location + "<br>" +
+                    "Available chargers: " + station.availableChargers + "<br>" +
+                    "Price: ₹" + station.price + " per unit"
+                );
+
+            stationMarkers.push(marker);
+
+            stationList.innerHTML += `
+                <article class="station-card">
+                    <h3>${station.name}</h3>
+                    <p>${station.location}</p>
+                    <p class="available">
+                        Available · ${station.availableChargers} chargers free
+                    </p>
+                    <p>Distance: ${distance} km</p>
+                    <p>Price: ₹${station.price} per unit</p>
+
+                    <button onclick="bookStation('${station.name}')">
+                        Book Slot
+                    </button>
+
+                    <button class="direction-btn"
+                        onclick="getDirections(${station.latitude}, ${station.longitude})">
+                        Get Directions
+                    </button>
+                </article>
+            `;
+        });
+    }
+
+    function showMyLocation() {
+        if (!navigator.geolocation) {
+            alert("Your browser does not support location access.");
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            function (position) {
+                userLatitude = position.coords.latitude;
+                userLongitude = position.coords.longitude;
+
+                map.setView([userLatitude, userLongitude], 13);
+
+                if (userMarker) {
+                    map.removeLayer(userMarker);
+                }
+
+                userMarker = L.marker([userLatitude, userLongitude])
+                    .addTo(map)
+                    .bindPopup("Your Current Location")
+                    .openPopup();
+
+                showStations();
+            },
+            function () {
+                alert("Location access was denied. Hyderabad is shown as the default location.");
+            }
+        );
+    }
+
+    function bookStation(stationName) {
+        localStorage.setItem("selectedStation", stationName);
+        window.location.href = "booking.html";
+    }
+
+    function getDirections(latitude, longitude) {
+        window.open(
+            "https://www.google.com/maps/dir/?api=1&destination=" +
+            latitude + "," + longitude,
+            "_blank"
+        );
+    }
+
+    showStations();
+</script>
+
+</body>
+</html>

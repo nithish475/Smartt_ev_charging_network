@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Find Charging Stations</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0b5d6b, #167b9b, #3d9d77);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 8%;
+            background: white;
+        }
+
+        header h2 {
+            color: #073b4c;
+        }
+
+        nav a {
+            margin-left: 18px;
+            color: #073b4c;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .container {
+            width: min(1100px, 92%);
+            margin: 40px auto;
+        }
+
+        .page-title {
+            color: white;
+            margin-bottom: 25px;
+        }
+
+        .search-box {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 13px;
+            border: 1px solid #bbb;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .search-box button {
+            padding: 13px 25px;
+            border: none;
+            border-radius: 8px;
+            background: #0b8f6a;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .search-box button:hover {
+            background: #067457;
+        }
+
+        #message {
+            color: white;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .station-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .station-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .station-card h2 {
+            color: #073b4c;
+            margin-bottom: 15px;
+        }
+
+        .station-card p {
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .available {
+            color: #0b8f6a !important;
+            font-weight: bold;
+        }
+
+        .unavailable {
+            color: #c62828 !important;
+            font-weight: bold;
+        }
+
+        .book-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #0b8f6a;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .book-btn:hover {
+            background: #067457;
+        }
+
+        .book-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 800px) {
+            .station-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 550px) {
+            .station-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+
+    <h2>⚡ Smart EV Charging</h2>
+
+    <nav>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="booking-history.html">My Bookings</a>
+        <a href="login.html">Logout</a>
+    </nav>
+
+</header>
+
+
+<main class="container">
+
+    <h1 class="page-title">Find Charging Stations</h1>
+
+
+    <!-- SEARCH -->
+
+    <div class="search-box">
+
+        <input
+                type="text"
+                id="locationSearch"
+                placeholder="Enter location, e.g. Hyderabad">
+
+        <button onclick="searchStations()">
+            🔍 Search
+        </button>
+
+    </div>
+
+
+    <p id="message"></p>
+
+
+    <!-- STATION RESULTS -->
+
+    <div
+            id="stationResults"
+            class="station-grid">
+    </div>
+
+</main>
+
+
+<script>
+
+    async function searchStations() {
+
+        const location =
+            document.getElementById("locationSearch")
+                .value
+                .trim();
+
+        const results =
+            document.getElementById("stationResults");
+
+        const message =
+            document.getElementById("message");
+
+        const token =
+            localStorage.getItem("token");
+
+
+        results.innerHTML = "";
+        message.textContent = "";
+
+
+        if (!token) {
+
+            message.textContent =
+                "Please login first.";
+
+            return;
+        }
+
+
+        if (!location) {
+
+            message.textContent =
+                "Please enter a location.";
+
+            return;
+        }
+
+
+        message.textContent =
+            "Searching charging stations...";
+
+
+        try {
+
+            const response = await fetch(
+
+                "http://localhost:8080/api/stations/search?location="
+                + encodeURIComponent(location),
+
+                {
+                    method: "GET",
+
+                    headers: {
+                        "Authorization":
+                            "Bearer " + token
+                    }
+                }
+
+            );
+
+
+            console.log(
+                "Station search status:",
+                response.status
+            );
+
+
+            if (!response.ok) {
+
+                const error =
+                    await response.text();
+
+                console.error(
+                    "Backend error:",
+                    error
+                );
+
+                message.textContent =
+                    "Unable to search stations.";
+
+                return;
+            }
+
+
+            const stations =
+                await response.json();
+
+
+            console.log(
+                "Stations found:",
+                stations
+            );
+
+
+            message.textContent = "";
+
+
+            if (
+                !stations ||
+                stations.length === 0
+            ) {
+
+                message.textContent =
+                    "No charging stations found in "
+                    + location + ".";
+
+                return;
+            }
+
+
+            stations.forEach(function (station) {
+
+                const card =
+                    document.createElement("div");
+
+                card.className =
+                    "station-card";
+
+
+                card.innerHTML = `
+
+                    <h2>
+                        ⚡ ${station.stationName || "-"}
+                    </h2>
+
+                    <p>
+                        📍 <strong>Location:</strong>
+                        ${station.location || "-"}
+                    </p>
+
+                    <p>
+                        🔌 <strong>Charger Type:</strong>
+                        ${station.chargerType || "-"}
+                    </p>
+
+                    <p>
+                        🔋 <strong>Total Ports:</strong>
+                        ${station.totalPorts || 0}
+                    </p>
+
+                    <p>
+                        💰 <strong>Price:</strong>
+                        ₹${station.pricePerHour || 0}/hour
+                    </p>
+
+                    <p class="${
+                        station.available
+                            ? "available"
+                            : "unavailable"
+                    }">
+
+                        ${
+                            station.available
+                                ? "🟢 Available"
+                                : "🔴 Unavailable"
+                        }
+
+                    </p>
+
+                    <button
+                        class="book-btn"
+                        ${
+                            station.available
+                                ? ""
+                                : "disabled"
+                        }
+                        onclick="bookStation(${station.id})">
+
+                        ${
+                            station.available
+                                ? "Book Now"
+                                : "Unavailable"
+                        }
+
+                    </button>
+
+                `;
+
+
+                results.appendChild(card);
+
+            });
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Station search error:",
+                error
+            );
+
+            message.textContent =
+                "Unable to connect to backend.";
+
+        }
+
+    }
+
+
+    function bookStation(stationId) {
+
+        console.log(
+            "Selected station ID:",
+            stationId
+        );
+
+
+        /*
+         * Store selected station ID
+         * so booking page can use it.
+         */
+
+        localStorage.setItem(
+            "selectedStationId",
+            stationId
+        );
+
+
+        /*
+         * Go to booking page
+         */
+
+        window.location.href =
+            "booking.html";
+
+    }
+
+</script>
+
+</body>
+
+</html>

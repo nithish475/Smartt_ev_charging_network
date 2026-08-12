@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Smart EV Charging</title>
+
+    <link rel="stylesheet" href="css/css/dashboard.css">
+
+</head>
+<body>
+
+<header class="navbar">
+
+    <h2>⚡ Smart EV Charging</h2>
+
+    <nav>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="map.html">Find Station</a>
+        <a href="booking.html">My Bookings</a>
+        <a href="booking-history.html">History</a>
+        <a href="find-stations.html">Find Stations</a>
+    </nav>
+
+</header>
+
+<section class="welcome">
+
+    <h1>Welcome, <span id="userEmail">User</span> 👋</h1>
+
+    <p>
+        Find nearby charging stations, reserve slots,
+        and manage your charging sessions.
+    </p>
+
+</section>
+
+<section class="cards">
+
+    <div class="card">
+        <h3>⚡ Find Station</h3>
+        <p>Search nearby EV charging stations.</p>
+        <button onclick="window.location.href='map.html'">
+            Open Map
+        </button>
+    </div>
+
+    <div class="card">
+        <h3>📅 Book Slot</h3>
+        <p>Reserve a charging slot.</p>
+        <button onclick="window.location.href='booking.html'">
+            Book Now
+        </button>
+    </div>
+
+    <div class="card">
+        <h3>📜 Booking History</h3>
+        <p>View all your reservations.</p>
+        <button onclick="window.location.href='booking-history.html'">
+            View History
+        </button>
+    </div>
+
+</section>
+
+<script src="js/dashboard.js"></script>
+
+</body>
+</html>

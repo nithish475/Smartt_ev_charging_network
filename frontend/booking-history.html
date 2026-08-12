@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Booking History - Smart EV Charging</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #eef7f4;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 8%;
+            background: #073b4c;
+            color: white;
+        }
+
+        header h2 {
+            color: white;
+        }
+
+        header a {
+            margin-left: 18px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .container {
+            width: min(1100px, 92%);
+            margin: 40px auto;
+        }
+
+        h1 {
+            color: #073b4c;
+            margin-bottom: 25px;
+        }
+
+        .table-box {
+            overflow-x: auto;
+            padding: 25px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            padding: 14px;
+            background: #073b4c;
+            color: white;
+            text-align: left;
+        }
+
+        td {
+            padding: 14px;
+            border-bottom: 1px solid #ddd;
+            color: #444;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+
+        .paid {
+            color: #07815f;
+        }
+
+        .pending {
+            color: #e67e22;
+        }
+
+        .cancelled {
+            color: #c62828;
+        }
+
+        .cancel-btn {
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            background: #c62828;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .cancel-btn:hover {
+            background: #a51f1f;
+        }
+
+        .empty-message {
+            padding: 25px;
+            color: #666;
+            text-align: center;
+        }
+
+        .error-message {
+            padding: 20px;
+            color: #c62828;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+
+    <h2>⚡ Smart EV Charging</h2>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="map.html">Nearby Stations</a>
+        <a href="booking.html">Book Slot</a>
+        <a href="dashboard.html">Dashboard</a>
+    </nav>
+
+</header>
+
+
+<main class="container">
+
+    <h1>My Booking History</h1>
+
+    <section class="table-box">
+
+        <table>
+
+            <thead>
+
+            <tr>
+                <th>Booking ID</th>
+                <th>Station ID</th>
+                <th>Date</th>
+                <th>Time Slot</th>
+                <th>Vehicle Number</th>
+                <th>Payment Status</th>
+                <th>Action</th>
+            </tr>
+
+            </thead>
+
+            <!-- IMPORTANT -->
+            <tbody id="bookingTable"></tbody>
+
+        </table>
+
+        <!-- IMPORTANT -->
+        <p class="empty-message" id="emptyMessage"></p>
+
+    </section>
+
+</main>
+
+
+<script>
+
+    async function showBookings() {
+
+        const bookingTable =
+            document.getElementById("bookingTable");
+
+        const emptyMessage =
+            document.getElementById("emptyMessage");
+
+
+        // Safety check
+        if (!bookingTable || !emptyMessage) {
+
+            console.error(
+                "bookingTable or emptyMessage element not found"
+            );
+
+            return;
+        }
+
+
+        bookingTable.innerHTML = "";
+
+        emptyMessage.textContent = "";
+
+
+        // Get JWT
+        const token =
+            localStorage.getItem("token");
+
+
+        if (!token) {
+
+            emptyMessage.textContent =
+                "Please login first.";
+
+            return;
+        }
+
+
+        try {
+
+            /*
+             * Get logged-in user information
+             */
+            const userResponse = await fetch(
+                "http://localhost:8080/api/users/me",
+                {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                }
+            );
+
+
+            if (!userResponse.ok) {
+
+                throw new Error(
+                    "Unable to get logged-in user"
+                );
+
+            }
+
+
+            const currentUser =
+                await userResponse.json();
+
+
+            console.log(
+                "Current user:",
+                currentUser
+            );
+
+
+            /*
+             * Get bookings of this user
+             */
+            const response = await fetch(
+                "http://localhost:8080/api/bookings/user/"
+                + currentUser.id,
+                {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                }
+            );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Unable to get bookings"
+                );
+
+            }
+
+
+            const bookings =
+                await response.json();
+
+
+            console.log(
+                "Bookings from backend:",
+                bookings
+            );
+
+
+            if (!bookings || bookings.length === 0) {
+
+                emptyMessage.textContent =
+                    "No booking information found.";
+
+                return;
+            }
+
+
+            /*
+             * Display bookings
+             */
+            bookings.forEach(function (booking) {
+
+                const row =
+                    document.createElement("tr");
+
+
+                let statusClass = "pending";
+
+                if (booking.paymentStatus === "PAID") {
+                    statusClass = "paid";
+                }
+
+                if (booking.paymentStatus === "CANCELLED") {
+                    statusClass = "cancelled";
+                }
+
+
+                row.innerHTML = `
+
+                    <td>#${booking.id}</td>
+
+                    <td>
+                        Station ${booking.stationId}
+                    </td>
+
+                    <td>
+                        ${booking.bookingDate || "-"}
+                    </td>
+
+                    <td>
+                        ${booking.bookingTime || "-"}
+                    </td>
+
+                    <td>
+                        ${booking.vehicleNumber || "-"}
+                    </td>
+
+                    <td class="status ${statusClass}">
+                        ${booking.paymentStatus || "PENDING"}
+                    </td>
+
+                    <td>
+                        ${
+                            booking.paymentStatus !== "CANCELLED"
+                            ?
+                            `<button
+                                class="cancel-btn"
+                                onclick="cancelBooking(${booking.id})">
+                                Cancel
+                            </button>`
+                            :
+                            "-"
+                        }
+                    </td>
+
+                `;
+
+
+                bookingTable.appendChild(row);
+
+            });
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Booking history error:",
+                error
+            );
+
+
+            emptyMessage.textContent =
+                "Unable to load booking history.";
+
+        }
+
+    }
+
+
+    async function cancelBooking(id) {
+
+        const confirmCancel =
+            confirm(
+                "Are you sure you want to cancel booking #" + id + "?"
+            );
+
+
+        if (!confirmCancel) {
+            return;
+        }
+
+
+        const token =
+            localStorage.getItem("token");
+
+
+        try {
+
+            const response = await fetch(
+                "http://localhost:8080/api/bookings/delete/"
+                + id,
+                {
+                    method: "DELETE",
+
+                    headers: {
+                        "Authorization":
+                            "Bearer " + token
+                    }
+                }
+            );
+
+
+            if (response.ok) {
+
+                alert(
+                    "Booking cancelled successfully."
+                );
+
+                showBookings();
+
+            }
+            else {
+
+                alert(
+                    "Unable to cancel booking."
+                );
+
+            }
+
+        }
+        catch (error) {
+
+            console.error(
+                "Cancel booking error:",
+                error
+            );
+
+            alert(
+                "Unable to connect to backend."
+            );
+
+        }
+
+    }
+
+
+    // Load booking history
+    showBookings();
+
+</script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

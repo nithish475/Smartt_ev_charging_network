@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Payment - Smart EV Charging</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(
+                135deg,
+                #0b5d6b,
+                #167b9b,
+                #3d9d77
+            );
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 8%;
+            background: white;
+        }
+
+        header h2 {
+            color: #073b4c;
+        }
+
+        header a {
+            margin-left: 18px;
+            color: #073b4c;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .container {
+            width: min(600px, 90%);
+            margin: 40px auto;
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 25px;
+        }
+
+        .payment-box {
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .summary {
+            padding: 18px;
+            margin-bottom: 25px;
+            background: #e8f6f1;
+            border-radius: 10px;
+        }
+
+        .summary p {
+            margin: 10px 0;
+            color: #333;
+        }
+
+        .payment-option {
+            display: block;
+            margin: 12px 0;
+            padding: 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .payment-option:hover {
+            background: #f4faf8;
+        }
+
+        .payment-option input {
+            margin-right: 10px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #0b8f6a;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #067457;
+        }
+
+        button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        #message {
+            margin-top: 18px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <h2>⚡ Smart EV Charging</h2>
+
+    <nav>
+
+        <a href="index.html">
+            Home
+        </a>
+
+        <a href="booking-history.html">
+            Booking History
+        </a>
+
+    </nav>
+
+</header>
+
+
+<main class="container">
+
+    <h1>
+        Payment
+    </h1>
+
+
+    <section class="payment-box">
+
+
+        <!-- BOOKING DETAILS -->
+
+        <div
+                class="summary"
+                id="bookingSummary"
+        >
+            Loading booking details...
+        </div>
+
+
+        <h3>
+            Select Payment Method
+        </h3>
+
+
+        <!-- UPI -->
+
+        <label class="payment-option">
+
+            <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="UPI"
+                    checked
+            >
+
+            UPI Payment
+
+        </label>
+
+
+        <!-- CARD -->
+
+        <label class="payment-option">
+
+            <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="CARD"
+            >
+
+            Credit / Debit Card
+
+        </label>
+
+
+        <!-- CASH -->
+
+        <label class="payment-option">
+
+            <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="CASH"
+            >
+
+            Cash at Station
+
+        </label>
+
+
+        <!-- PAY BUTTON -->
+
+        <button
+                id="payButton"
+                onclick="makePayment()"
+        >
+            Pay Now
+        </button>
+
+
+        <p id="message"></p>
+
+
+    </section>
+
+</main>
+
+
+<script>
+
+
+    /* =====================================================
+       GLOBAL BOOKING
+    ===================================================== */
+
+    let pendingBooking = null;
+
+
+    /* =====================================================
+       STATION NAMES
+    ===================================================== */
+
+    function getStationName(stationId) {
+
+        if (Number(stationId) === 1) {
+            return "Hyderabad EV Hub";
+        }
+
+        if (Number(stationId) === 2) {
+            return "Gachibowli Charge Point";
+        }
+
+        if (Number(stationId) === 3) {
+            return "Madhapur Fast Charge";
+        }
+
+        return "Unknown Station";
+    }
+
+
+    /* =====================================================
+       LOAD BOOKING
+    ===================================================== */
+
+    function loadBooking() {
+
+        const summary =
+            document.getElementById(
+                "bookingSummary"
+            );
+
+
+        /*
+         * IMPORTANT:
+         * booking.html saves this exact key.
+         */
+
+        const storedBooking =
+            localStorage.getItem(
+                "pendingBooking"
+            );
+
+
+        console.log(
+            "Stored pendingBooking:",
+            storedBooking
+        );
+
+
+        if (!storedBooking) {
+
+            summary.innerHTML =
+                "<p><b>No booking found.</b></p>" +
+                "<p>Please create a booking first.</p>";
+
+            document.getElementById(
+                "payButton"
+            ).disabled = true;
+
+            return;
+
+        }
+
+
+        try {
+
+            pendingBooking =
+                JSON.parse(
+                    storedBooking
+                );
+
+
+            console.log(
+                "Pending Booking:",
+                pendingBooking
+            );
+
+
+            /* =================================================
+               GET VALUES
+            ================================================= */
+
+            const station =
+                getStationName(
+                    pendingBooking.stationId
+                );
+
+
+            const date =
+                pendingBooking.bookingDate ||
+                "-";
+
+
+            const time =
+                pendingBooking.bookingTime ||
+                "-";
+
+
+            const vehicle =
+                pendingBooking.vehicleNumber ||
+                "-";
+
+
+            /*
+             * Your project currently uses ₹250
+             * for a charging booking.
+             */
+
+            const amount = 250;
+
+
+            /* =================================================
+               DISPLAY
+            ================================================= */
+
+            summary.innerHTML =
+
+                "<p><b>Booking ID:</b> #" +
+                (pendingBooking.id || "-") +
+                "</p>" +
+
+                "<p><b>Station:</b> " +
+                station +
+                "</p>" +
+
+                "<p><b>Date:</b> " +
+                date +
+                "</p>" +
+
+                "<p><b>Time:</b> " +
+                time +
+                "</p>" +
+
+                "<p><b>Vehicle Number:</b> " +
+                vehicle +
+                "</p>" +
+
+                "<p><b>Amount:</b> ₹" +
+                amount +
+                "</p>";
+
+
+        } catch (error) {
+
+            console.error(
+                "Error reading pendingBooking:",
+                error
+            );
+
+
+            summary.innerHTML =
+                "<p><b>Unable to load booking details.</b></p>";
+
+
+            document.getElementById(
+                "payButton"
+            ).disabled = true;
+
+        }
+
+    }
+
+
+    /* =====================================================
+       MAKE PAYMENT
+    ===================================================== */
+
+    async function makePayment() {
+
+
+        const message =
+            document.getElementById(
+                "message"
+            );
+
+
+        const payButton =
+            document.getElementById(
+                "payButton"
+            );
+
+
+        message.textContent = "";
+
+
+        /* =================================================
+           CHECK BOOKING
+        ================================================= */
+
+        if (!pendingBooking) {
+
+            message.textContent =
+                "No booking found.";
+
+            message.style.color =
+                "#c62828";
+
+            return;
+
+        }
+
+
+        /* =================================================
+           GET JWT
+        ================================================= */
+
+        const token =
+            localStorage.getItem(
+                "token"
+            );
+
+
+        console.log(
+            "Payment JWT:",
+            token
+        );
+
+
+        if (!token) {
+
+            message.textContent =
+                "Please login first.";
+
+            message.style.color =
+                "#c62828";
+
+            return;
+
+        }
+
+
+        /* =================================================
+           PAYMENT METHOD
+        ================================================= */
+
+        const selectedMethod =
+            document.querySelector(
+                'input[name="paymentMethod"]:checked'
+            );
+
+
+        if (!selectedMethod) {
+
+            message.textContent =
+                "Please select a payment method.";
+
+            return;
+
+        }
+
+
+        const paymentMethod =
+            selectedMethod.value;
+
+
+        /* =================================================
+           PAYMENT DATA
+        ================================================= */
+
+        const paymentData = {
+
+            bookingId:
+                pendingBooking.id,
+
+            userId:
+                pendingBooking.userId,
+
+            amount:
+                250,
+
+            paymentMethod:
+                paymentMethod
+
+        };
+
+
+        console.log(
+            "PAYMENT DATA:",
+            paymentData
+        );
+
+
+        /* =================================================
+           DISABLE BUTTON
+        ================================================= */
+
+        payButton.disabled = true;
+
+        payButton.textContent =
+            "Processing Payment...";
+
+
+        try {
+
+
+            /* =================================================
+               CALL PAYMENT API
+            ================================================= */
+
+            const response =
+                await fetch(
+                    "http://localhost:8080/api/payments/pay",
+                    {
+
+                        method: "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json",
+
+                            "Authorization":
+                                "Bearer " + token
+
+                        },
+
+                        body:
+                            JSON.stringify(
+                                paymentData
+                            )
+
+                    }
+                );
+
+
+            console.log(
+                "Payment API Status:",
+                response.status
+            );
+
+
+            /* =================================================
+               READ RESPONSE
+            ================================================= */
+
+            const result =
+                await response.json();
+
+
+            console.log(
+                "Payment Response:",
+                result
+            );
+
+
+            /* =================================================
+               SUCCESS
+            ================================================= */
+
+            if (response.ok) {
+
+
+                /*
+                 * Update local booking
+                 */
+
+                pendingBooking.paymentStatus =
+                    "PAID";
+
+
+                localStorage.setItem(
+                    "pendingBooking",
+                    JSON.stringify(
+                        pendingBooking
+                    )
+                );
+
+
+                /*
+                 * Save payment locally too.
+                 * This is only for frontend backup.
+                 * MySQL is the real payment storage.
+                 */
+
+                const payments =
+                    JSON.parse(
+                        localStorage.getItem(
+                            "payments"
+                        )
+                    ) || [];
+
+
+                payments.push({
+
+                    id:
+                        result.id,
+
+                    bookingId:
+                        result.bookingId,
+
+                    userId:
+                        result.userId,
+
+                    amount:
+                        result.amount,
+
+                    method:
+                        result.paymentMethod,
+
+                    status:
+                        result.paymentStatus,
+
+                    paymentDate:
+                        result.paymentDate
+
+                });
+
+
+                localStorage.setItem(
+                    "payments",
+                    JSON.stringify(
+                        payments
+                    )
+                );
+
+
+                /*
+                 * Remove pending booking
+                 * because payment is complete.
+                 */
+
+                localStorage.removeItem(
+                    "pendingBooking"
+                );
+
+
+                message.textContent =
+                    "Payment successful!";
+
+                message.style.color =
+                    "#07815f";
+
+
+                alert(
+                    "Payment successful! Your booking is confirmed."
+                );
+
+
+                /*
+                 * Go to booking history
+                 */
+
+                window.location.href =
+                    "booking-history.html";
+
+
+            } else {
+
+
+                /* =================================================
+                   PAYMENT FAILED
+                ================================================= */
+
+                console.error(
+                    "Payment failed:",
+                    result
+                );
+
+
+                message.textContent =
+                    typeof result === "string"
+                        ? result
+                        : (
+                            result.message ||
+                            "Payment failed."
+                        );
+
+
+                message.style.color =
+                    "#c62828";
+
+
+                payButton.disabled =
+                    false;
+
+
+                payButton.textContent =
+                    "Pay Now";
+
+            }
+
+
+        } catch (error) {
+
+
+            console.error(
+                "PAYMENT ERROR:",
+                error
+            );
+
+
+            message.textContent =
+                "Unable to connect to payment server.";
+
+
+            message.style.color =
+                "#c62828";
+
+
+            payButton.disabled =
+                false;
+
+
+            payButton.textContent =
+                "Pay Now";
+
+        }
+
+    }
+
+
+    /* =====================================================
+       START
+    ===================================================== */
+
+    loadBooking();
+
+</script>
+
+
+</body>
+
+</html>

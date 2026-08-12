@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Registration - Smart EV Charging</title>
+    <link rel="stylesheet" href="css/css/register.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+
+            background:
+                linear-gradient(
+                    rgba(5, 25, 45, 0.55),
+                    rgba(5, 25, 45, 0.55)
+                ),
+                url("images/ev-charging-bg.png");
+
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .register-container {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+        }
+
+        .register-box {
+            width: 100%;
+            max-width: 500px;
+            padding: 38px;
+
+            background: rgba(255, 255, 255, 0.95);
+
+            border-radius: 15px;
+
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        h1 {
+            color: #073b4c;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+
+            border: 1px solid #bbb;
+            border-radius: 8px;
+
+            font-size: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+
+            border: none;
+            border-radius: 8px;
+
+            background: #0b8f6a;
+            color: white;
+
+            font-size: 16px;
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #067457;
+        }
+
+        .login-link {
+            margin-top: 18px;
+            text-align: center;
+            color: #555;
+        }
+
+        .login-link a {
+            color: #0b8f6a;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        #message {
+            margin-top: 15px;
+            text-align: center;
+            color: #c62828;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="register-container">
+
+    <div class="register-box">
+
+        <h1>⚡ Smart EV Charging</h1>
+
+        <p class="subtitle">
+            Create Your Account
+        </p>
+
+        <form id="registerForm">
+
+            <div class="input-group">
+                <label for="name">
+                    Full Name
+                </label>
+
+                <input
+                        id="name"
+                        type="text"
+                        placeholder="Enter your full name"
+                        required
+                >
+            </div>
+
+
+            <div class="input-group">
+                <label for="email">
+                    Email Address
+                </label>
+
+                <input
+                        id="email"
+                        type="email"
+                        placeholder="Enter your email"
+                        required
+                >
+            </div>
+
+
+            <div class="input-group">
+                <label for="mobile">
+                    Mobile Number
+                </label>
+
+                <input
+                        id="mobile"
+                        type="tel"
+                        placeholder="Enter mobile number"
+                        required
+                >
+            </div>
+
+
+            <div class="input-group">
+                <label for="password">
+                    Password
+                </label>
+
+                <input
+                        id="password"
+                        type="password"
+                        placeholder="Create a password"
+                        required
+                >
+            </div>
+
+
+            <div class="input-group">
+                <label for="confirmPassword">
+                    Confirm Password
+                </label>
+
+                <input
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="Confirm your password"
+                        required
+                >
+            </div>
+
+
+            <button type="submit">
+                Register
+            </button>
+
+            <p id="message"></p>
+
+        </form>
+
+
+        <p class="login-link">
+
+            Already have an account?
+
+            <a href="login.html">
+                Login
+            </a>
+
+        </p>
+
+    </div>
+
+</div>
+
+<script>
+    document.getElementById("loginForm").addEventListener("submit", async function (event) {
+
+        event.preventDefault();
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+        const message = document.getElementById("message");
+
+        message.textContent = "";
+
+        try {
+
+            const response = await fetch("http://localhost:8080/api/users/login", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    email: email,
+                    password: password
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.token) {
+
+                // Save JWT token
+                localStorage.setItem("token", result.token);
+
+                // Save logged-in user email
+                localStorage.setItem("currentUserEmail", email);
+
+                // Go to dashboard
+                window.location.href = "dashboard.html";
+
+            } else {
+
+                message.textContent =
+                    result.message || "Invalid Email or Password.";
+            }
+
+        } catch (error) {
+
+            console.error("Login error:", error);
+
+            message.textContent =
+                "Unable to connect to the server. Please make sure Spring Boot is running.";
+        }
+    });
+
+</script>
+<script src="js/register.js"></script>
+</body>
+</html>

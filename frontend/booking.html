@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+    >
+
+    <link
+            rel="stylesheet"
+            href="css/css/dashboard.css"
+    >
+
+    <title>Book Charging Slot - Smart EV Charging</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(
+                135deg,
+                #0b5d6b,
+                #167b9b,
+                #3d9d77
+            );
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 8%;
+            background: white;
+        }
+
+        header h2 {
+            color: #073b4c;
+        }
+
+        header a {
+            margin-left: 18px;
+            color: #073b4c;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .container {
+            width: min(650px, 90%);
+            margin: 40px auto;
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 25px;
+        }
+
+        .booking-box {
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #bbb;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        .slot-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .time-slot {
+            margin: 0;
+            padding: 11px 5px;
+            border: 1px solid #0b8f6a;
+            border-radius: 7px;
+            background: white;
+            color: #0b8f6a;
+            cursor: pointer;
+        }
+
+        .time-slot:hover,
+        .time-slot.selected {
+            background: #0b8f6a;
+            color: white;
+        }
+
+        .booking-btn {
+            width: 100%;
+            margin-top: 25px;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #0b8f6a;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .booking-btn:hover {
+            background: #067457;
+        }
+
+        .booking-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        #message {
+            margin-top: 18px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        @media (max-width: 500px) {
+
+            .slot-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <h2>⚡ Smart EV Charging</h2>
+
+    <nav>
+
+        <a href="index.html">
+            Home
+        </a>
+
+        <a href="map.html">
+            Nearby Stations
+        </a>
+
+        <a href="dashboard.html">
+            Dashboard
+        </a>
+
+    </nav>
+
+</header>
+
+
+<main class="container">
+
+    <h1>
+        Book Charging Slot
+    </h1>
+
+
+    <section class="booking-box">
+
+        <form id="bookingForm">
+
+
+            <!-- Charging Station -->
+
+            <div class="input-group">
+
+                <label for="station">
+                    Select Charging Station
+                </label>
+
+                <select
+                        id="station"
+                        required
+                >
+
+                    <option value="">
+                        Select a station
+                    </option>
+
+                    <option value="1">
+                        Hyderabad EV Hub
+                    </option>
+
+                    <option value="2">
+                        Gachibowli Charge Point
+                    </option>
+
+                    <option value="3">
+                        Madhapur Fast Charge
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- Date -->
+
+            <div class="input-group">
+
+                <label for="bookingDate">
+                    Select Date
+                </label>
+
+                <input
+                        id="bookingDate"
+                        type="date"
+                        required
+                >
+
+            </div>
+
+
+            <!-- Time -->
+
+            <div class="input-group">
+
+                <label>
+                    Select Available Time Slot
+                </label>
+
+                <div class="slot-container">
+
+
+                    <button
+                            type="button"
+                            class="time-slot"
+                            onclick="selectTime(this, '09:00')"
+                    >
+                        09:00 AM
+                    </button>
+
+
+                    <button
+                            type="button"
+                            class="time-slot"
+                            onclick="selectTime(this, '10:00')"
+                    >
+                        10:00 AM
+                    </button>
+
+
+                    <button
+                            type="button"
+                            class="time-slot"
+                            onclick="selectTime(this, '11:00')"
+                    >
+                        11:00 AM
+                    </button>
+
+
+                    <button
+                            type="button"
+                            class="time-slot"
+                            onclick="selectTime(this, '12:00')"
+                    >
+                        12:00 PM
+                    </button>
+
+
+                    <button
+                            type="button"
+                            class="time-slot"
+                            onclick="selectTime(this, '14:00')"
+                    >
+                        02:00 PM
+                    </button>
+
+
+                    <button
+                            type="button"
+                            class="time-slot"
+                            onclick="selectTime(this, '15:00')"
+                    >
+                        03:00 PM
+                    </button>
+
+
+                </div>
+
+            </div>
+
+
+            <!-- Vehicle -->
+
+            <div class="input-group">
+
+                <label for="vehicle">
+                    Vehicle Number
+                </label>
+
+                <input
+                        id="vehicle"
+                        type="text"
+                        placeholder="Example: TS09AB1234"
+                        required
+                >
+
+            </div>
+
+
+            <!-- Submit -->
+
+            <button
+                    type="submit"
+                    class="booking-btn"
+                    id="bookingButton"
+            >
+                Confirm Booking
+            </button>
+
+
+            <p id="message"></p>
+
+
+        </form>
+
+    </section>
+
+</main>
+
+
+<script>
+
+
+    let selectedTime = "";
+
+
+    /* =====================================================
+       MINIMUM BOOKING DATE
+    ===================================================== */
+
+    const today =
+        new Date()
+            .toISOString()
+            .split("T")[0];
+
+
+    document.getElementById(
+        "bookingDate"
+    ).min = today;
+
+
+    /* =====================================================
+       SELECT TIME
+    ===================================================== */
+
+    function selectTime(button, time) {
+
+
+        document
+            .querySelectorAll(".time-slot")
+            .forEach(function(slot) {
+
+                slot.classList.remove(
+                    "selected"
+                );
+
+            });
+
+
+        button.classList.add(
+            "selected"
+        );
+
+
+        selectedTime = time;
+
+
+        console.log(
+            "Selected Time:",
+            selectedTime
+        );
+
+    }
+
+
+    /* =====================================================
+       BOOKING FORM
+    ===================================================== */
+
+    document
+        .getElementById("bookingForm")
+        .addEventListener(
+            "submit",
+            async function(event) {
+
+
+                event.preventDefault();
+
+
+                const message =
+                    document.getElementById(
+                        "message"
+                    );
+
+
+                const bookingButton =
+                    document.getElementById(
+                        "bookingButton"
+                    );
+
+
+                message.textContent = "";
+
+
+                /* =================================================
+                   GET JWT
+                ================================================= */
+
+                const token =
+                    localStorage.getItem(
+                        "token"
+                    );
+
+
+                console.log(
+                    "JWT:",
+                    token
+                );
+
+
+                /* =================================================
+                   CHECK LOGIN
+                ================================================= */
+
+                if (!token) {
+
+                    message.textContent =
+                        "Please login first.";
+
+                    return;
+
+                }
+
+
+                /* =================================================
+                   CHECK TIME
+                ================================================= */
+
+                if (!selectedTime) {
+
+                    message.textContent =
+                        "Please select a time slot.";
+
+                    return;
+
+                }
+
+
+                /* =================================================
+                   STATION
+                ================================================= */
+
+                const stationId =
+                    Number(
+                        document
+                            .getElementById(
+                                "station"
+                            )
+                            .value
+                    );
+
+
+                /* =================================================
+                   DATE
+                ================================================= */
+
+                const bookingDate =
+                    document
+                        .getElementById(
+                            "bookingDate"
+                        )
+                        .value;
+
+
+                /* =================================================
+                   VEHICLE
+                ================================================= */
+
+                const vehicle =
+                    document
+                        .getElementById(
+                            "vehicle"
+                        )
+                        .value
+                        .trim();
+
+
+                /* =================================================
+                   VALIDATE STATION
+                ================================================= */
+
+                if (!stationId) {
+
+                    message.textContent =
+                        "Please select a charging station.";
+
+                    return;
+
+                }
+
+
+                /* =================================================
+                   VALIDATE VEHICLE
+                ================================================= */
+
+                if (!vehicle) {
+
+                    message.textContent =
+                        "Please enter vehicle number.";
+
+                    return;
+
+                }
+
+
+                /* =================================================
+                   BOOKING DATA
+                ================================================= */
+
+                const booking = {
+
+                    stationId:
+                        stationId,
+
+                    bookingDate:
+                        bookingDate,
+
+                    bookingTime:
+                        selectedTime,
+
+                    vehicleNumber:
+                        vehicle
+
+                };
+
+
+                console.log(
+                    "BOOKING DATA:",
+                    booking
+                );
+
+
+                /* =================================================
+                   DISABLE BUTTON
+                ================================================= */
+
+                bookingButton.disabled =
+                    true;
+
+
+                bookingButton.textContent =
+                    "Creating Booking...";
+
+
+                try {
+
+
+                    /* =================================================
+                       CALL BACKEND
+                    ================================================= */
+
+                    const response =
+                        await fetch(
+                            "http://localhost:8080/api/bookings/book",
+                            {
+
+                                method: "POST",
+
+                                headers: {
+
+                                    "Content-Type":
+                                        "application/json",
+
+                                    "Authorization":
+                                        "Bearer " +
+                                        token
+
+                                },
+
+                                body:
+                                    JSON.stringify(
+                                        booking
+                                    )
+
+                            }
+                        );
+
+
+                    /* =================================================
+                       READ RESPONSE
+                    ================================================= */
+
+                    const result =
+                        await response.json();
+
+
+                    console.log(
+                        "BOOKING RESPONSE:",
+                        result
+                    );
+
+
+                    /* =================================================
+                       SUCCESS
+                    ================================================= */
+
+                    if (response.ok) {
+
+
+                        /*
+                         * IMPORTANT
+                         *
+                         * Store the actual backend
+                         * booking response as pendingBooking.
+                         *
+                         * payment.html will read this.
+                         */
+
+                        const pendingBooking = {
+
+                            id:
+                                result.id,
+
+                            userId:
+                                result.userId,
+
+                            stationId:
+                                result.stationId,
+
+                            bookingDate:
+                                result.bookingDate,
+
+                            bookingTime:
+                                result.bookingTime,
+
+                            vehicleNumber:
+                                result.vehicleNumber ||
+                                vehicle,
+
+                            paymentStatus:
+                                result.paymentStatus
+
+                        };
+
+
+                        console.log(
+                            "PENDING BOOKING:",
+                            pendingBooking
+                        );
+
+
+                        /* =================================================
+                           SAVE PENDING BOOKING
+                        ================================================= */
+
+                        localStorage.setItem(
+                            "pendingBooking",
+                            JSON.stringify(
+                                pendingBooking
+                            )
+                        );
+
+
+                        /*
+                         * Remove old lastBooking
+                         * so payment.html doesn't
+                         * accidentally use old data.
+                         */
+
+                        localStorage.removeItem(
+                            "lastBooking"
+                        );
+
+
+                        /* =================================================
+                           SUCCESS MESSAGE
+                        ================================================= */
+
+                        message.textContent =
+                            "Booking created successfully!";
+
+                        message.style.color =
+                            "#0b8f6a";
+
+
+                        /* =================================================
+                           GO TO PAYMENT
+                        ================================================= */
+
+                        setTimeout(
+                            function() {
+
+                                window.location.href =
+                                    "payment.html";
+
+                            },
+                            800
+                        );
+
+
+                    } else {
+
+
+                        /* =================================================
+                           BOOKING FAILED
+                        ================================================= */
+
+                        console.error(
+                            "BOOKING FAILED:",
+                            response.status,
+                            result
+                        );
+
+
+                        message.textContent =
+                            result.message ||
+                            "Booking failed.";
+
+                        message.style.color =
+                            "#c62828";
+
+
+                        bookingButton.disabled =
+                            false;
+
+
+                        bookingButton.textContent =
+                            "Confirm Booking";
+
+                    }
+
+
+                } catch (error) {
+
+
+                    /* =================================================
+                       ERROR
+                    ================================================= */
+
+                    console.error(
+                        "BOOKING ERROR:",
+                        error
+                    );
+
+
+                    message.textContent =
+                        "Unable to connect to backend.";
+
+                    message.style.color =
+                        "#c62828";
+
+
+                    bookingButton.disabled =
+                        false;
+
+
+                    bookingButton.textContent =
+                        "Confirm Booking";
+
+                }
+
+            }
+        );
+
+</script>
+
+
+</body>
+
+</html>

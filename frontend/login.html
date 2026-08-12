@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Login - Smart EV Charging</title>
+
+    <link rel="stylesheet" href="css/css/login.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(rgba(5, 25, 45, 0.55), rgba(5, 25, 45, 0.55)),
+                        url("images/ev-charging-bg.png");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 430px;
+            padding: 40px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        h1 {
+            color: #073b4c;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #bbb;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
+            background: #0b8f6a;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #067457;
+        }
+
+        .link-text {
+            margin-top: 17px;
+            color: #555;
+        }
+
+        .link-text a {
+            color: #0b8f6a;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        #message {
+            margin-top: 15px;
+            color: #c62828;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-container">
+    <div class="login-box">
+
+        <h1>⚡ Smart EV Charging</h1>
+        <p class="subtitle">Welcome Back</p>
+
+        <form id="loginForm">
+
+            <div class="input-group">
+                <label for="email">Email Address</label>
+                <input id="email" type="email" placeholder="Enter your email" required>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input id="password" type="password" placeholder="Enter your password" required>
+            </div>
+
+            <button type="submit">Login</button>
+
+            <p id="message"></p>
+        </form>
+
+        <p class="link-text">
+            Don't have an account?
+            <a href="register.html">Register</a>
+        </p>
+
+        <p class="link-text">
+            Administrator?
+            <a href="admin/admin.html">Admin Login</a>
+        </p>
+
+    </div>
+</div>
+
+<script src="js/login.js"></script>
+</body>
+</html>
